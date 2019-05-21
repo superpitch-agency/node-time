@@ -106,7 +106,7 @@ class Time {
       Nan::Set(obj, Nan::New("year").ToLocalChecked(), Nan::New<v8::Integer>(timeinfo->tm_year) );
       Nan::Set(obj, Nan::New("dayOfWeek").ToLocalChecked(), Nan::New<v8::Integer>(timeinfo->tm_wday) );
       Nan::Set(obj, Nan::New("dayOfYear").ToLocalChecked(), Nan::New<v8::Integer>(timeinfo->tm_yday) );
-      Nan::Set(obj, Nan::New("isDaylightSavings").ToLocalChecked(), ::New<v8::Boolean>(timeinfo->tm_isdst > 0) );
+      Nan::Set(obj, Nan::New("isDaylightSavings").ToLocalChecked(), Nan::New<v8::Boolean>(timeinfo->tm_isdst > 0) );
 
 /**
  * Corentin Ribeyre
