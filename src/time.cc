@@ -64,18 +64,25 @@ class Time {
 	_get_daylight(&daylight);
 	Nan::Set(obj, Nan::New("daylight").ToLocalChecked(), Nan::New<v8::Number>(daylight));
 #else
+    /** Corentin Ribeyre
+     * Related issue on Github: https://github.com/TooTallNate/node-time/issues/53#issuecomment-282922917
+     * Change to be compatible with FreeBSD
+     */
     for (int i=0; i < tznameLength; i++) {
-      Nan::Set(tznameArray, i, Nan::New<v8::String>(tzname[i]).ToLocalChecked());
+        Nan::Set(tznameArray, i, Nan::New<v8::String>(tzname[i]).ToLocalChecked());
     }
 
     Nan::Set(obj, Nan::New("tzname").ToLocalChecked(), tznameArray);
 
+    time_t rawtime = 0;
+    time(&rawtime);
+    struct tm *timeinfo = localtime( &rawtime );
     // The 'timezone' long is the "seconds West of UTC"
-    Nan::Set(obj, Nan::New("timezone").ToLocalChecked(), Nan::New<v8::Number>( timezone ));
+    Nan::Set(obj, Nan::New("timezone").ToLocalChecked(), Nan::New<v8::Number>( timeinfo->tm_gmtoff ));
 
     // The 'daylight' int is obselete actually, but I'll include it here for
     // curiosity's sake. See the "Notes" section of "man tzset"
-    Nan::Set(obj, Nan::New("daylight").ToLocalChecked(), Nan::New<v8::Number>( daylight ));
+    Nan::Set(obj, Nan::New("daylight").ToLocalChecked(), Nan::New<v8::Number>( timeinfo->tm_isdst ));
 #endif
     info.GetReturnValue().Set(scope.Escape(obj));
   }
@@ -99,7 +106,13 @@ class Time {
       Nan::Set(obj, Nan::New("year").ToLocalChecked(), Nan::New<v8::Integer>(timeinfo->tm_year) );
       Nan::Set(obj, Nan::New("dayOfWeek").ToLocalChecked(), Nan::New<v8::Integer>(timeinfo->tm_wday) );
       Nan::Set(obj, Nan::New("dayOfYear").ToLocalChecked(), Nan::New<v8::Integer>(timeinfo->tm_yday) );
-      Nan::Set(obj, Nan::New("isDaylightSavings").ToLocalChecked(), Nan::New<v8::Boolean>(timeinfo->tm_isdst > 0) );
+      Nan::Set(obj, Nan::New("isDaylightSavings").ToLocalChecked(), ::New<v8::Boolean>(timeinfo->tm_isdst > 0) );
+
+/**
+ * Corentin Ribeyre
+ * Enable for FreeBSD
+ */
+#define HAVE_TM_GMTOFF
 
 #if defined HAVE_TM_GMTOFF
       // Only available with glibc's "tm" struct. Most Linuxes, Mac OS X...
